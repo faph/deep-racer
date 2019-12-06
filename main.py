@@ -56,7 +56,7 @@ def no_steering_on_straight(params, reward):
     return 0.0
 
 
-@reward_f()
+@reward_f(scale=3.0)
 def speedup_on_straight(params, reward):
     speed = params['speed']
     if abs(_track_curve(params)) < 1.0:
