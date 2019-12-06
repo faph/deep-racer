@@ -84,7 +84,7 @@ def _track_direction(params, waypoints_ahead=0, waypoints_arear=0):
 def _track_curve(params):
     """Return the change in track direction between current position and next waypoints"""
     curr_direction = _track_direction(params, waypoints_ahead=0, waypoints_arear=0)
-    fut_direction = _track_direction(params, waypoints_ahead=1, waypoints_arear=-1)
+    fut_direction = _track_direction(params, waypoints_ahead=3, waypoints_arear=-1)
     return fut_direction - curr_direction
 
 
