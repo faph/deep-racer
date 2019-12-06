@@ -1,6 +1,5 @@
 import functools
 import inspect
-import operator
 import sys
 import math
 
@@ -23,6 +22,25 @@ def stay_near_center(params, reward):
     distance_from_center = params['distance_from_center']
     rel_dist = distance_from_center / (track_width / 2)
     new_reward = max(0, min(1, 1 - (rel_dist - 0.3)))
+    return new_reward
+
+
+@reward_f(scale=1.0)
+def increasing_progress(params, reward):
+    """The closer to the finish, the higher the reward"""
+    progress = params['progress']
+    new_reward = progress * .01
+    return new_reward
+
+
+@reward_f(scale=1.0)
+def reward_speed(params, reward):
+    """Reward going fast"""
+    progress = params['progress']
+    steps = params['steps']
+    TOTAL_NUM_STEPS = 300
+    # New reward should be ~1.0 throughout lap to complete within TOTAL_NUM_STEPS
+    new_reward = progress / 100.0 / steps * TOTAL_NUM_STEPS
     return new_reward
 
 
@@ -60,14 +78,31 @@ def steering_heading_reward(params, reward):
     return new_reward
 
 
-def _track_direction(params, waypoints_ahead=0):
+@reward_f(scale=2.0)
+def no_steering_on_straight(params, reward):
+    """Reward not steering on a straight track"""
+    steering_angle = params['steering_angle']
+    if abs(_track_curve(params)) < 5.0:
+        if abs(steering_angle) < 1.0:
+            return 1.0
+    return 0.0
+
+
+def _track_direction(params, waypoints_ahead=0, waypoints_arear=0):
     """Return track direction in degrees for current car position"""
     waypoints = params['waypoints']
     closest_waypoints = params['closest_waypoints']
     next_point = waypoints[(closest_waypoints[1] + waypoints_ahead) % len(waypoints)]
-    prev_point = waypoints[closest_waypoints[0]]
+    prev_point = waypoints[(closest_waypoints[0] - waypoints_arear) % len(waypoints)]
     track_direction = math.degrees(math.atan2(next_point[1] - prev_point[1], next_point[0] - prev_point[0]))
     return track_direction
+
+
+def _track_curve(params):
+    """Return the change in track direction between current position and next waypoints"""
+    curr_direction = _track_direction(params, waypoints_ahead=0, waypoints_arear=0)
+    fut_direction = _track_direction(params, waypoints_ahead=1, waypoints_arear=-1)
+    return fut_direction - curr_direction
 
 
 reward_functions = [
@@ -85,6 +120,7 @@ def reward_function(params):
         lambda r1, r2: r2(params, r1),
         [init_reward] + reward_functions,
     )
+
 
 
 def test():
