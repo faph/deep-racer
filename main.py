@@ -1,7 +1,8 @@
 import functools
 import inspect
-import math
+import operator
 import sys
+import math
 
 
 def reward_f(scale=1.0):
@@ -22,25 +23,6 @@ def stay_near_center(params, reward):
     distance_from_center = params['distance_from_center']
     rel_dist = distance_from_center / (track_width / 2)
     new_reward = max(0, min(1, 1 - (rel_dist - 0.3)))
-    return new_reward
-
-
-@reward_f(scale=1.0)
-def increasing_progress(params, reward):
-    """The closer to the finish, the higher the reward"""
-    progress = params['progress']
-    new_reward = progress * .01
-    return new_reward
-
-
-@reward_f(scale=1.0)
-def reward_speed(params, reward):
-    """Reward going fast"""
-    progress = params['progress']
-    steps = params['steps']
-    TOTAL_NUM_STEPS = 300
-    # New reward should be ~1.0 throughout lap to complete within TOTAL_NUM_STEPS
-    new_reward = progress / 100.0 / steps * TOTAL_NUM_STEPS
     return new_reward
 
 
