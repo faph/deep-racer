@@ -3,6 +3,9 @@ import inspect
 import sys
 import math
 
+MAX_SPEED = 1.0
+SPEED_STEPS = 2
+
 
 def reward_f(scale=1.0):
     def wrap(f):
@@ -47,10 +50,25 @@ def steering_heading_reward(params, reward):
 def no_steering_on_straight(params, reward):
     """Reward not steering on a straight track"""
     steering_angle = params['steering_angle']
-    if abs(_track_curve(params)) < 5.0:
+    if abs(_track_curve(params)) < 1.0:
         if abs(steering_angle) < 1.0:
             return 1.0
     return 0.0
+
+
+@reward_f()
+def speedup_on_straight(params, reward):
+    speed = params['speed']
+    if abs(_track_curve(params)) < 1.0:
+        if abs(speed - MAX_SPEED) < 0.1:
+            return 1.0
+        else:
+            return 0.0
+    else:
+        if abs(speed - MAX_SPEED) < 0.1:
+            return 0.0
+        else:
+            return 1.0
 
 
 def _track_direction(params, waypoints_ahead=0, waypoints_arear=0):
