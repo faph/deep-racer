@@ -105,7 +105,6 @@ def reward_function(params):
     )
 
 
-
 def test():
     inp = {
         'progress': 50,
