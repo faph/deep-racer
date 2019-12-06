@@ -16,32 +16,9 @@ def reward_f(scale=1.0):
 
 
 @reward_f(scale=2.0)
-def stay_near_center(params, reward):
-    """Keep the car close to centerline"""
-    track_width = params['track_width']
-    distance_from_center = params['distance_from_center']
-    rel_dist = distance_from_center / (track_width / 2)
-    new_reward = max(0, min(1, 1 - (rel_dist - 0.3)))
-    return new_reward
-
-
-@reward_f(scale=1.0)
-def increasing_progress(params, reward):
-    """The closer to the finish, the higher the reward"""
-    progress = params['progress']
-    new_reward = progress * .01
-    return new_reward
-
-
-@reward_f(scale=1.0)
-def reward_speed(params, reward):
-    """Reward going fast"""
-    progress = params['progress']
-    steps = params['steps']
-    TOTAL_NUM_STEPS = 300
-    # New reward should be ~1.0 throughout lap to complete within TOTAL_NUM_STEPS
-    new_reward = progress / 100.0 / steps * TOTAL_NUM_STEPS
-    return new_reward
+def stay_on_track(params, reward):
+    all_wheels_on_track = params['all_wheels_on_track']
+    return 1.0 if all_wheels_on_track else 0.0
 
 
 @reward_f(scale=1.0)
@@ -54,18 +31,6 @@ def reduce_high_speed_steering(params, reward):
 
 
 @reward_f(scale=1.0)
-def heading_reward(params, reward):
-    """Reward going in the right direction"""
-    heading = params['heading']
-    track_direction = _track_direction(params, waypoints_ahead=1)
-    direction_diff = abs(track_direction - heading)
-    if direction_diff > 180:
-        direction_diff = 360 - direction_diff
-    new_reward = max(1 - direction_diff / 30.0, 0.0)
-    return new_reward
-
-
-@reward_f(scale=2.0)
 def steering_heading_reward(params, reward):
     """Reward steering in the right direction"""
     heading = params['heading']
@@ -140,6 +105,7 @@ def test():
         ],
         'closest_waypoints': [3, 4],
         'heading': 45.0,
+        'all_wheels_on_track': True,
     }
     print(reward_function(inp))
 
